@@ -1,0 +1,25 @@
+<svg width="768" height="768" viewBox="0 0 768 768" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Pradhan Appliance Care</title>
+  <desc id="desc">Pradhan Appliance Care logo with a house, appliance repair symbol and service name.</desc>
+  <rect width="768" height="768" fill="#ffffff"/>
+  <g fill="none" stroke-linecap="square" stroke-linejoin="miter">
+    <path d="M174 204 383 80l211 124" stroke="#1261bd" stroke-width="28"/>
+    <path d="M486 159h43v48h-43z" fill="#1261bd" stroke="#1261bd" stroke-width="8"/>
+    <path d="M359 141h20v20h-20zm26 0h20v20h-20zm-26 27h20v20h-20zm26 0h20v20h-20z" fill="#1261bd" stroke="#1261bd" stroke-width="6"/>
+    <path d="M252 196h190c65 0 99 25 99 68 0 47-33 78-91 78H365l-27 82-89 23 49-203h136c17 0 27-7 27-18 0-11-12-18-32-18H287z" fill="#202020" stroke="#202020" stroke-width="4"/>
+    <path d="M288 254h137c39 0 56 14 56 39 0 22-16 37-47 37h-91l-26 122-81 22 51-220z" fill="#1261bd" stroke="#1261bd" stroke-width="4"/>
+    <path d="M548 222c30 26 34 64 17 99-25 52-76 90-136 113" stroke="#1261bd" stroke-width="14"/>
+    <path d="m391 279 20 8-23 22-4 28-22 14-18-19 25-13 7-26z" fill="#ffffff" stroke="#ffffff" stroke-width="7"/>
+    <path d="M77 266h76v177H77zm76 0h81v177h-81zm-76 177h157" stroke="#202020" stroke-width="12"/>
+    <path d="M191 343h43v74h-43z" stroke="#ffffff" stroke-width="9"/>
+    <circle cx="213" cy="380" r="23" stroke="#ffffff" stroke-width="8"/>
+    <path d="M566 328h103v17H566zm21-54h61v54h-61zM571 362h97v77h-97z" fill="#202020" stroke="#202020" stroke-width="10"/>
+    <rect x="584" y="375" width="71" height="49" rx="3" stroke="#ffffff" stroke-width="7"/>
+    <path d="M678 382h20m-20 15h20m-20 15h20" stroke="#ffffff" stroke-width="6"/>
+    <path d="M613 449c-12 12 12 17 0 29m25-29c-12 12 12 17 0 29m25-29c-12 12 12 17 0 29" stroke="#202020" stroke-width="7"/>
+  </g>
+  <text x="384" y="548" text-anchor="middle" font-family="Arial, sans-serif" font-size="84" font-weight="800" letter-spacing="-5" fill="#202020">PRADHAN</text>
+  <text x="384" y="620" text-anchor="middle" font-family="Arial, sans-serif" font-size="49" font-weight="800" letter-spacing="2" fill="#1261bd">APPLIANCE CARE</text>
+  <path d="M96 663h83m506 0h-83" stroke="#202020" stroke-width="5"/>
+  <text x="384" y="673" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="700" letter-spacing="7" fill="#202020">SERVICE • REPAIR • SUPPORT</text>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Generic reviewer avatar illustration">
+  <defs><clipPath id="c"><circle cx="128" cy="128" r="128"/></clipPath></defs>
+  <g clip-path="url(#c)">
+    <rect width="256" height="256" fill="#fff0d4"/>
+    <circle cx="128" cy="112" r="49" fill="#d49a72"/>
+    <path d="M74 96c8-43 28-69 58-69 34 0 55 25 58 67-16-13-34-21-57-21-24 0-43 8-59 23Z" fill="#614638"/>
+    <path d="M56 256c8-52 36-80 72-80 38 0 66 28 73 80Z" fill="#dc8b58"/>
+    <circle cx="109" cy="112" r="5" fill="#49342d"/><circle cx="147" cy="112" r="5" fill="#49342d"/>
+    <path d="M113 137c10 7 20 7 30 0" fill="none" stroke="#8e5744" stroke-linecap="round" stroke-width="5"/>
+  </g>
+</svg>

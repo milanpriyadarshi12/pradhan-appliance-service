@@ -1,0 +1,10 @@
+{
+  "name": "pradhan-appliance-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Responsive static website for Pradhan Appliance Service",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "serve": "python3 -m http.server 8000"
+  }
+}
