@@ -1,4 +1,37 @@
+
 /* Pradhan Appliance Service — static interactions with a Google Sheets review backend. */
+
+/* Safety net for iOS Safari's bfcache and background-tab timer suspension.
+   The modal close routine below finishes its scroll-lock cleanup inside a
+   short setTimeout (for the closing animation). If Safari suspends the page
+   mid-animation — the screen locks, the user switches apps, a call comes in,
+   or the tab is restored from the back/forward cache — that timeout can be
+   skipped, leaving body permanently "position: fixed" with no scrollbar and
+   no way to swipe. Nothing in the DOM legitimately requires a scroll lock at
+   the moment the script (re)runs or the page becomes visible again, so any
+   lock found at those two points is stale and is cleared immediately. */
+const releaseStaleScrollLock = () => {
+  // A modal frozen mid-"is-closing" (its finishClose timeout never fired)
+  // is not a legitimate open modal — force it the rest of the way shut
+  // before deciding whether the body lock is still needed.
+  document.querySelectorAll(".modal.is-closing, .lightbox.is-closing").forEach((modal) => {
+    if (modal.__closeTimer) window.clearTimeout(modal.__closeTimer);
+    modal.hidden = true;
+    modal.classList.remove("is-closing");
+  });
+  const modalActuallyOpen = document.querySelector(".modal:not([hidden]), .lightbox:not([hidden])");
+  if (modalActuallyOpen) return;
+  document.body.classList.remove("modal-open");
+  document.body.style.position = "";
+  document.body.style.top = "";
+  document.body.style.width = "";
+};
+releaseStaleScrollLock();
+window.addEventListener("pageshow", releaseStaleScrollLock);
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) releaseStaleScrollLock();
+});
+
 document.addEventListener("DOMContentLoaded", () => {
   const $ = (selector, parent = document) => parent.querySelector(selector);
   const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];
