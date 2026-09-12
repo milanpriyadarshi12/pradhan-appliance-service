@@ -35,7 +35,6 @@ document.addEventListener("visibilitychange", () => {
 document.addEventListener("DOMContentLoaded", () => {
   const $ = (selector, parent = document) => parent.querySelector(selector);
   const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];
-  const phoneNumber = "917978997413";
   const reviewsApiUrl = "https://script.google.com/macros/s/AKfycbyngSsoEsCAeexfKGCq4X7jQwQ2HQvlKLg4P3jwr3-9_bEPQ6GQ16yPEZW6OAxxyUC9Zg/exec";
   const fetchWithTimeout = async (url, options = {}, timeout = 10000) => {
     const controller = new AbortController();
@@ -46,6 +45,9 @@ document.addEventListener("DOMContentLoaded", () => {
       window.clearTimeout(timer);
     }
   };
+  if (window.emailjs) {
+    window.emailjs.init({ publicKey: "FJpKhy11-HBxXpI4c" });
+  }
 
   /* Mobile navigation */
   const navToggle = $("#nav-toggle");
@@ -237,7 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
     dateInput.min = localDate;
   }
 
-  /* Booking form: validates locally, then hands the request to WhatsApp. */
+  /* Booking form: validates locally, then sends via EmailJS. */
   const bookingForm = $("#book-form");
   const bookingNote = $("#form-note");
   const showError = (input, message) => {
@@ -257,7 +259,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!location.value) { showError(location, "Choose your service area."); valid = false; } else showError(location, "");
     return valid;
   };
-  bookingForm?.addEventListener("submit", (event) => {
+  bookingForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
     bookingNote.className = "form-note";
     bookingNote.textContent = "";
@@ -267,27 +269,24 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     const submit = $("#booking-submit");
-    const data = new FormData(bookingForm);
-    const message = [
-      "Hello Pradhan Appliance Service, I would like to book a service.",
-      `Name: ${data.get("full-name")}`,
-      `Phone: ${data.get("phone")}`,
-      `Appliance: ${data.get("appliance")}`,
-      `Location: ${data.get("location")}`,
-      data.get("preferred-date") ? `Preferred date: ${data.get("preferred-date")}` : "",
-      data.get("preferred-time") ? `Preferred time: ${data.get("preferred-time")}` : "",
-      data.get("problem") ? `Problem: ${data.get("problem")}` : ""
-    ].filter(Boolean).join("\n");
+    const originalButtonText = submit.innerHTML;
     submit.disabled = true;
-    submit.innerHTML = "Preparing WhatsApp request…";
-    window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, "_blank", "noopener");
-    window.setTimeout(() => {
+    submit.innerHTML = "Sending...";
+    bookingNote.textContent = "Sending...";
+    try {
+      if (!window.emailjs) throw new Error("EmailJS is unavailable.");
+      await window.emailjs.sendForm("service_ox71311", "template_50s9zwk", bookingForm);
       bookingForm.reset();
-      submit.disabled = false;
-      submit.innerHTML = 'Send booking request <span aria-hidden="true">→</span>';
       bookingNote.className = "form-note success";
-      bookingNote.textContent = "Your details are ready in WhatsApp. Send the message to complete your request.";
-    }, 650);
+      bookingNote.textContent = "✅ Booking request sent successfully! We will contact you shortly.";
+    } catch (error) {
+      console.error("EmailJS booking error:", error);
+      bookingNote.className = "form-note";
+      bookingNote.textContent = "❌ Unable to send your booking request. Please try again or contact us on WhatsApp.";
+    } finally {
+      submit.disabled = false;
+      submit.innerHTML = originalButtonText;
+    }
   });
 
   /* Animate FAQ expansion and collapse consistently on touch and pointer devices. */
@@ -338,7 +337,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* Reviews come only from published rows in the Google Sheet. */
-  let reviews = [];
+  let allPublishedReviews = [];
+  let homepageReviews = [];
   const reviewsTrack = $("#reviews-track");
   const controls = $("#carousel-controls");
   const dots = $("#carousel-dots");
@@ -357,13 +357,13 @@ document.addEventListener("DOMContentLoaded", () => {
     reviewsTrack.innerHTML = `<div class="reviews-empty"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(message)}</span></div>`;
     controls.hidden = true;
   };
-  const renderReviews = () => {
-    if (!reviews.length) {
+  const renderHomepageReviews = () => {
+    if (!homepageReviews.length) {
       showReviewState("No published reviews yet", "Be the first to share your experience.");
       return;
     }
     controls.hidden = false;
-    reviewsTrack.innerHTML = reviews.map(renderReviewCard).join("");
+    reviewsTrack.innerHTML = homepageReviews.map(renderReviewCard).join("");
   };
   const normalizeReviews = (payload) => {
     const rows = Array.isArray(payload) ? payload : Array.isArray(payload.reviews) ? payload.reviews : Array.isArray(payload.data) ? payload.data : [];
@@ -375,7 +375,7 @@ document.addEventListener("DOMContentLoaded", () => {
       date: review.date ?? review.Date ?? ""
     })).filter((review) => review.name && review.review && review.rating >= 1 && review.rating <= 5);
   };
-  const maxIndex = () => Math.max(0, reviews.length - getVisible());
+  const maxIndex = () => Math.max(0, homepageReviews.length - getVisible());
   let dotsSignature = "";
   const paintDots = () => {
     const total = Math.max(1, maxIndex() + 1);
@@ -395,7 +395,7 @@ document.addEventListener("DOMContentLoaded", () => {
     $$(".carousel-dot", dots).forEach((dot, index) => dot.classList.toggle("active", index === slideIndex));
   };
   const updateCarousel = () => {
-    if (!reviews.length) {
+    if (!homepageReviews.length) {
       return;
     }
     controls.hidden = false;
@@ -407,7 +407,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const restartAutoSlide = () => {
     window.clearInterval(autoSlide);
-    if (reviews.length > getVisible() && !document.hidden) autoSlide = window.setInterval(() => {
+    if (homepageReviews.length > getVisible() && !document.hidden) autoSlide = window.setInterval(() => {
       slideIndex = slideIndex >= maxIndex() ? 0 : slideIndex + 1;
       updateCarousel();
     }, 6200);
@@ -439,14 +439,16 @@ document.addEventListener("DOMContentLoaded", () => {
       const response = await fetchWithTimeout(reviewsApiUrl, { headers: { Accept: "application/json" } });
       if (!response.ok) throw new Error(`Review request failed with ${response.status}`);
       const payload = await response.json();
-      reviews = normalizeReviews(payload);
+      allPublishedReviews = normalizeReviews(payload);
+      homepageReviews = allPublishedReviews.slice(0, 4);
       dotsSignature = "";
       slideIndex = 0;
-      renderReviews();
+      renderHomepageReviews();
       updateCarousel();
       restartAutoSlide();
     } catch (error) {
-      reviews = [];
+      allPublishedReviews = [];
+      homepageReviews = [];
       showReviewState("Reviews are temporarily unavailable", "Please try again shortly.");
     }
   };
@@ -509,8 +511,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.key === "Escape") $$(".modal:not([hidden]), .lightbox:not([hidden])").forEach(closeModal);
   });
   const allReviewsList = $("#all-reviews-list");
+  const renderAllReviewsModal = () => {
+    allReviewsList.innerHTML = allPublishedReviews.length
+      ? allPublishedReviews.map((review) => `<article class="all-review">${renderStars(review.rating)}<blockquote>“${escapeHtml(review.review)}”</blockquote><strong>${escapeHtml(review.name)}</strong><time>${escapeHtml(formatReviewDate(review.date))}</time></article>`).join("")
+      : "<p>No reviews yet. Be the first to share your experience.</p>";
+  };
   $("#view-all-reviews")?.addEventListener("click", () => {
-    allReviewsList.innerHTML = reviews.length ? reviews.map((review) => `<article class="all-review">${renderStars(review.rating)}<blockquote>“${escapeHtml(review.review)}”</blockquote><strong>${escapeHtml(review.name)}</strong><time>${escapeHtml(formatReviewDate(review.date))}</time></article>`).join("") : "<p>No reviews yet. Be the first to share your experience.</p>";
+    renderAllReviewsModal();
     openModal(allReviewsModal);
   });
 

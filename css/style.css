@@ -428,7 +428,7 @@ input:focus, select:focus, textarea:focus { border-color: #72ace7; box-shadow: 0
 }
 @media (max-width: 600px) {
   .container { width: min(100% - 32px, var(--container)); }
-  .section { padding: 66px 0; }
+  .section { padding: 54px 0; }
   .section-head { display: block; margin-bottom: 30px; }
   .section-intro { margin-top: 15px; }
   .brand-copy { display: none; }
@@ -480,11 +480,11 @@ input:focus, select:focus, textarea:focus { border-color: #72ace7; box-shadow: 0
   .carousel-controls { justify-content: space-between; }
   .review-actions { flex-direction: column; gap: 15px; margin-top: 24px; }
   .review-actions .btn { width: min(100%, 250px); }
-  .booking-inner { gap: 32px; }
+  .booking-inner { gap: 24px; }
   .book-form { padding: 22px 17px; border-radius: 18px; }
   .form-row.two-col { grid-template-columns: 1fr; gap: 0; }
   .book-form input, .book-form select { box-sizing: border-box; min-width: 0; max-width: 100%; padding: 11px 10px; font-size: .8rem; }
-  .faq-section { padding: 68px 0; }
+  .faq-section { padding: 56px 0; }
   .faq-list summary { font-size: .82rem; }
   .cta-strip-inner { display: block; }
   .cta-actions { margin-top: 25px; }
