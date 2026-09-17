@@ -1,5 +1,5 @@
 
-/* Pradhan Appliance Service — static interactions with a Google Sheets review backend. */
+/* Pradhan Appliance Care — static interactions with a Google Sheets review backend. */
 
 /* Safety net for iOS Safari's bfcache and background-tab timer suspension.
    The modal close routine below finishes its scroll-lock cleanup inside a

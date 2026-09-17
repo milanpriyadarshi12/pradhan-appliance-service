@@ -1,6 +1,6 @@
-# Pradhan Appliance Service
+# Pradhan Appliance Care
 
-A polished, responsive static website for Pradhan Appliance Service in
+A polished, responsive static website for Pradhan Appliance Care in
 Bhubaneswar, Odisha. It is built with semantic HTML, modern CSS and vanilla
 JavaScript — no framework, build step or runtime server is required.
 
