@@ -35,6 +35,23 @@ document.addEventListener("visibilitychange", () => {
 document.addEventListener("DOMContentLoaded", () => {
   const $ = (selector, parent = document) => parent.querySelector(selector);
   const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];
+  const deferredImages = $$("img[data-src]").filter((image) => !image.closest(".hero-slide"));
+  const loadDeferredImage = (image) => {
+    image.src = image.dataset.src;
+    image.removeAttribute("data-src");
+  };
+  if ("IntersectionObserver" in window) {
+    const deferredImageObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        loadDeferredImage(entry.target);
+        observer.unobserve(entry.target);
+      });
+    }, { rootMargin: "250px 0px" });
+    deferredImages.forEach((image) => deferredImageObserver.observe(image));
+  } else {
+    deferredImages.forEach(loadDeferredImage);
+  }
   const reviewsApiUrl = "https://script.google.com/macros/s/AKfycbyngSsoEsCAeexfKGCq4X7jQwQ2HQvlKLg4P3jwr3-9_bEPQ6GQ16yPEZW6OAxxyUC9Zg/exec";
   const fetchWithTimeout = async (url, options = {}, timeout = 10000) => {
     const controller = new AbortController();
@@ -171,6 +188,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const heroPrevious = $("#hero-slider-prev");
   const heroNext = $("#hero-slider-next");
   let heroIndex = 0;
+  let heroPendingIndex = null;
+  let heroChangeToken = 0;
   let heroTimer;
   let heroTouchStart;
   const paintHeroDots = () => {
@@ -191,16 +210,49 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const setHeroSlide = (nextIndex) => {
     if (!heroSlides.length) return;
-    heroIndex = (nextIndex + heroSlides.length) % heroSlides.length;
-    heroSlides.forEach((slide, index) => slide.classList.toggle("is-active", index === heroIndex));
-    paintHeroDots();
+    const targetIndex = (nextIndex + heroSlides.length) % heroSlides.length;
+    if (targetIndex === heroPendingIndex) return;
+    if (targetIndex === heroIndex) {
+      if (heroPendingIndex !== null) {
+        heroChangeToken += 1;
+        heroPendingIndex = null;
+      }
+      heroSlides.forEach((slide, index) => slide.classList.toggle("is-active", index === heroIndex));
+      paintHeroDots();
+      return;
+    }
+
+    const changeToken = ++heroChangeToken;
+    heroPendingIndex = targetIndex;
+    const image = $("img", heroSlides[targetIndex]);
+    const activateSlide = () => {
+      if (changeToken !== heroChangeToken) return;
+      heroIndex = targetIndex;
+      heroPendingIndex = null;
+      heroSlides.forEach((slide, index) => slide.classList.toggle("is-active", index === heroIndex));
+      paintHeroDots();
+    };
+    if (!image) {
+      activateSlide();
+      return;
+    }
+    if (!image.getAttribute("src") && image.dataset.src) {
+      image.src = image.dataset.src;
+      image.removeAttribute("data-src");
+    }
+    if (image.complete) {
+      activateSlide();
+      return;
+    }
+    image.addEventListener("load", activateSlide, { once: true });
+    image.addEventListener("error", activateSlide, { once: true });
   };
   const restartHeroAutoplay = () => {
     window.clearInterval(heroTimer);
     if (heroSlides.length > 1 && !document.hidden) heroTimer = window.setInterval(() => setHeroSlide(heroIndex + 1), 4700);
   };
-  heroPrevious?.addEventListener("click", () => { setHeroSlide(heroIndex - 1); restartHeroAutoplay(); });
-  heroNext?.addEventListener("click", () => { setHeroSlide(heroIndex + 1); restartHeroAutoplay(); });
+  heroPrevious?.addEventListener("click", () => { setHeroSlide((heroPendingIndex ?? heroIndex) - 1); restartHeroAutoplay(); });
+  heroNext?.addEventListener("click", () => { setHeroSlide((heroPendingIndex ?? heroIndex) + 1); restartHeroAutoplay(); });
   heroSlider?.addEventListener("mouseenter", () => window.clearInterval(heroTimer));
   heroSlider?.addEventListener("mouseleave", restartHeroAutoplay);
   heroSlider?.addEventListener("focusin", () => window.clearInterval(heroTimer));
@@ -212,7 +264,7 @@ document.addEventListener("DOMContentLoaded", () => {
   heroSlider?.addEventListener("touchend", (event) => {
     if (heroTouchStart === undefined) return;
     const distance = event.changedTouches[0].clientX - heroTouchStart;
-    if (Math.abs(distance) > 45) setHeroSlide(heroIndex + (distance < 0 ? 1 : -1));
+    if (Math.abs(distance) > 45) setHeroSlide((heroPendingIndex ?? heroIndex) + (distance < 0 ? 1 : -1));
     heroTouchStart = undefined;
     restartHeroAutoplay();
   }, { passive: true });
