@@ -192,6 +192,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const setHeroSlide = (nextIndex) => {
     if (!heroSlides.length) return;
     heroIndex = (nextIndex + heroSlides.length) % heroSlides.length;
+    const activeImage = $("img", heroSlides[heroIndex]);
+    if (activeImage?.dataset.src) {
+      activeImage.loading = "eager";
+      activeImage.src = activeImage.dataset.src;
+      delete activeImage.dataset.src;
+    }
     heroSlides.forEach((slide, index) => slide.classList.toggle("is-active", index === heroIndex));
     paintHeroDots();
   };
@@ -508,7 +514,29 @@ document.addEventListener("DOMContentLoaded", () => {
   $$("[data-open-review]").forEach((button) => button.addEventListener("click", () => openModal(reviewModal)));
   $$("[data-close-modal]").forEach((button) => button.addEventListener("click", () => closeModal(button.closest(".modal, .lightbox"))));
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") $$(".modal:not([hidden]), .lightbox:not([hidden])").forEach(closeModal);
+    const activeModal = $$(".modal:not([hidden]), .lightbox:not([hidden])")
+      .find((modal) => !modal.classList.contains("is-closing"));
+    if (event.key === "Escape") {
+      if (activeModal) closeModal(activeModal);
+      return;
+    }
+    if (event.key !== "Tab" || !activeModal) return;
+    const focusable = $$("a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])", activeModal)
+      .filter((element) => element.getClientRects().length > 0);
+    if (!focusable.length) {
+      event.preventDefault();
+      activeModal.focus();
+      return;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && (document.activeElement === first || !activeModal.contains(document.activeElement))) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && (document.activeElement === last || !activeModal.contains(document.activeElement))) {
+      event.preventDefault();
+      first.focus();
+    }
   });
   const allReviewsList = $("#all-reviews-list");
   const renderAllReviewsModal = () => {
@@ -536,15 +564,33 @@ document.addEventListener("DOMContentLoaded", () => {
   /* Review form and clickable star rating. */
   const reviewForm = $("#review-form");
   let selectedRating = 0;
-  const paintRating = () => $$(".star-picker button").forEach((button) => {
-    const active = Number(button.dataset.rating) <= selectedRating;
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-checked", String(active));
+  const ratingButtons = $$(".star-picker button");
+  const paintRating = () => ratingButtons.forEach((button) => {
+    const rating = Number(button.dataset.rating);
+    button.classList.toggle("active", rating <= selectedRating);
+    button.setAttribute("aria-checked", String(rating === selectedRating));
+    button.tabIndex = rating === (selectedRating || 1) ? 0 : -1;
   });
-  $$(".star-picker button").forEach((button) => button.addEventListener("click", () => {
-    selectedRating = Number(button.dataset.rating);
-    paintRating();
-  }));
+  ratingButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedRating = Number(button.dataset.rating);
+      paintRating();
+    });
+    button.addEventListener("keydown", (event) => {
+      const current = Number(button.dataset.rating);
+      let next = current;
+      if (event.key === "ArrowRight" || event.key === "ArrowUp") next = Math.min(5, current + 1);
+      else if (event.key === "ArrowLeft" || event.key === "ArrowDown") next = Math.max(1, current - 1);
+      else if (event.key === "Home") next = 1;
+      else if (event.key === "End") next = 5;
+      else return;
+      event.preventDefault();
+      selectedRating = next;
+      paintRating();
+      ratingButtons[next - 1].focus();
+    });
+  });
+  paintRating();
   const reviewError = (field, message) => { const el = $(`[data-review-error="${field}"]`); if (el) el.textContent = message || ""; };
   reviewForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
