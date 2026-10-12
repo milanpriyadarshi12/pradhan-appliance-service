@@ -192,12 +192,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const setHeroSlide = (nextIndex) => {
     if (!heroSlides.length) return;
     heroIndex = (nextIndex + heroSlides.length) % heroSlides.length;
-    const activeImage = $("img", heroSlides[heroIndex]);
-    if (activeImage?.dataset.src) {
-      activeImage.loading = "eager";
-      activeImage.src = activeImage.dataset.src;
-      delete activeImage.dataset.src;
-    }
     heroSlides.forEach((slide, index) => slide.classList.toggle("is-active", index === heroIndex));
     paintHeroDots();
   };
